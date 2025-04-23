@@ -43,10 +43,37 @@ def encrypt_file():
 
     os.remove(file_path)
 
-buttonHashCalculate = tk.Button(root, text="Make a key.", command=generate_key)
-buttonHashCalculate.pack(pady=20)
+def decrypte_file():
+    file_path = filedialog.askopenfilename()
+    key_path = filedialog.askopenfilename()
 
-buttonHashCalculate = tk.Button(root, text="Encrypte a file", command=encrypt_file)
-buttonHashCalculate.pack(pady=20)
+    with open(key_path, "rb") as key_file:
+        loaded_key = key_file.read()
 
-root.mainloop() # Keeps the window open and waits for input
+    # Create a Fernet object with the loaded key
+    f = Fernet(loaded_key)
+
+    # decrypt a file
+    with open(file_path, "rb") as file:  # Replace with your file path
+        original_data = file.read()
+
+    decrypte_data = f.decrypt(original_data)
+
+    base, ext = os.path.splitext(file_path)  # ext = '.encrypted'
+    decrypted_path = base  # 'example.txt'
+
+    with open(decrypted_path, "wb") as decrypted_file:
+        decrypted_file.write(decrypte_data)
+
+    os.remove(file_path)
+
+buttonGenerateKey = tk.Button(root, text="Make a key.", command=generate_key)
+buttonGenerateKey.pack(pady=20)
+
+buttonEncrypteFile = tk.Button(root, text="Encrypte a file", command=encrypt_file)
+buttonEncrypteFile.pack(pady=20)
+
+buttonDecrypteFile = tk.Button(root, text="Decrypte a file", command=decrypte_file)
+buttonDecrypteFile.pack(pady=20)
+
+root.mainloop() # Keeps the window open and waits for inpur
