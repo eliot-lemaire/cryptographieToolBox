@@ -1,6 +1,10 @@
 import os
 import tkinter as tk
 from tkinter import messagebox, filedialog, simpledialog
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import rsa   # libary to work with rsa keys
+from cryptography.hazmat.primitives import serialization    # libary to load and save .pem keys
 from cryptography.fernet import Fernet
 
 root = tk.Tk() # Creates a window
@@ -67,7 +71,47 @@ def decrypte_file():
 
     os.remove(file_path)
 
-buttonGenerateKey = tk.Button(root, text="Make a key.", command=generate_key)
+def make_asimmetric_keys():
+    # Generate private key
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,  # 2048 bits long
+)
+
+    # Get public key from private key
+    public_key = private_key.public_key()   # extracts the public key from private
+
+    store_public_key = filedialog.asksaveasfilename(
+    defaultextension=".pem",  # Default file extension
+    filetypes=[("key files", "*.pem"), ("All files", "*.*")],  # Allowed file types
+    title="public key"
+    )
+
+    store_private = filedialog.asksaveasfilename(
+    defaultextension=".pem",  # Default file extension
+    filetypes=[("key files", "*.pem"), ("All files", "*.*")],  # Allowed file types
+    title="private key"
+    )
+
+    if store_private:
+        with open(store_private, "wb") as f:
+            f.write(private_key.private_bytes(  # write private key but first make it into private bytes
+                encoding=serialization.Encoding.PEM,    # format the key with PEM (Privacy-Enhanced Mail)
+                format=serialization.PrivateFormat.PKCS8,   # format for storing the key, this is the most common
+                encryption_algorithm=serialization.NoEncryption()   # we are not using a password to protect the key
+            ))
+
+        # Save public key to file
+        with open(store_public_key, "wb") as f:
+            f.write(public_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            ))
+
+labelTitle = tk.Label(root, text="Symmetric Encryption")
+labelTitle.pack(pady=10)
+
+buttonGenerateKey = tk.Button(root, text="Make a key", command=generate_key)
 buttonGenerateKey.pack(pady=20)
 
 buttonEncrypteFile = tk.Button(root, text="Encrypte a file", command=encrypt_file)
@@ -75,5 +119,11 @@ buttonEncrypteFile.pack(pady=20)
 
 buttonDecrypteFile = tk.Button(root, text="Decrypte a file", command=decrypte_file)
 buttonDecrypteFile.pack(pady=20)
+
+labelTitle = tk.Label(root, text="Asymmetric Encryption")
+labelTitle.pack(pady=10)
+
+buttonAssymetricKeys = tk.Button(root, text="Make public and private keys", command=make_asimmetric_keys)
+buttonAssymetricKeys.pack(pady=20)
 
 root.mainloop() # Keeps the window open and waits for inpur

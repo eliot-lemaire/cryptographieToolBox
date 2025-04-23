@@ -1,0 +1,32 @@
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import rsa   # libary to work with rsa keys
+from cryptography.hazmat.primitives import serialization    # libary to load and save .pem keys
+from cryptography.fernet import Fernet
+
+with open("/home/eliot/Python/cryptographie/public_key.pem", "rb") as f:
+    public_key = serialization.load_pem_public_key(f.read())
+
+with open("/home/eliot/Python/cryptographie/private_key.pem", "rb") as f:
+    private_key = serialization.load_pem_private_key(f.read(), password=None)
+
+message = b"Meet me at high noon."
+encrypted = public_key.encrypt(
+    message,
+    padding.OAEP(
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None
+    )
+)
+print("Encrypted message:", encrypted)
+
+decrypted = private_key.decrypt(
+    encrypted,
+    padding.OAEP(
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None
+    )
+)
+print("Decrypted message:", decrypted)
