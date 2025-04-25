@@ -6,6 +6,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa   # libary to work with rsa keys
 from cryptography.hazmat.primitives import serialization    # libary to load and save .pem keys
 from cryptography.fernet import Fernet
+import rsa
 
 root = tk.Tk() # Creates a window
 root.title("cryptographie tool kit") 
@@ -72,14 +73,7 @@ def decrypte_file():
     os.remove(file_path)
 
 def make_asimmetric_keys():
-    # Generate private key
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,  # 2048 bits long
-)
-
-    # Get public key from private key
-    public_key = private_key.public_key()   # extracts the public key from private
+    public_key, private_key = rsa.newkeys(1024)
 
     store_public_key = filedialog.asksaveasfilename(
     defaultextension=".pem",  # Default file extension
@@ -95,54 +89,11 @@ def make_asimmetric_keys():
 
     if store_private:
         with open(store_private, "wb") as f:
-            f.write(private_key.private_bytes(  # write private key but first make it into private bytes
-                encoding=serialization.Encoding.PEM,    # format the key with PEM (Privacy-Enhanced Mail)
-                format=serialization.PrivateFormat.PKCS8,   # format for storing the key, this is the most common
-                encryption_algorithm=serialization.NoEncryption()   # we are not using a password to protect the key
-            ))
+            f.write(private_key.save_pkcs1("PEM"))
 
         # Save public key to file
         with open(store_public_key, "wb") as f:
-            f.write(public_key.public_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PublicFormat.SubjectPublicKeyInfo
-            ))
-
-def asymmetric_encryption():
-    file_path = filedialog.askopenfilename()
-    key_path = filedialog.askopenfilename()
-
-    with open(key_path, "rb") as f:
-        public_key = serialization.load_pem_public_key(f.read())
-
-    symmetric_key = Fernet.generate_key()
-    fernet = Fernet(symmetric_key)
-
-    with open(file_path, "rb") as f:
-        data = f.read()
-
-    encrypted_data = fernet.encrypt(data)
-
-    # Encrypt the Fernet key with the RSA public key
-    encrypted_key = public_key.encrypt(
-    symmetric_key,
-    padding.OAEP(
-        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-        algorithm=hashes.SHA256(),
-        label=None
-        )
-    )
-
-    # Save both to files
-    with open("encrypted_data.bin", "wb") as f:
-        f.write(encrypted_data)
-
-    with open("encrypted_key.bin", "wb") as f:
-        f.write(encrypted_key)
-
-def asymmetric_decryption():
-    file_path = filedialog.askopenfilename()
-    key_path = filedialog.askopenfilename()
+            f.write(public_key.save_pkcs1("PEM"))
 
 labelTitle = tk.Label(root, text="Symmetric Encryption")
 labelTitle.pack(pady=10)
@@ -162,17 +113,10 @@ labelTitle.pack(pady=10)
 buttonAssymetricKeys = tk.Button(root, text="Make public and private keys", command=make_asimmetric_keys)
 buttonAssymetricKeys.pack(pady=20)
 
-buttonAssymetricEncrypte = tk.Button(root, text="Encrypte using public key", command=asymmetric_encryption)
-buttonAssymetricEncrypte.pack(pady=20)
+buttonAsymmetricEncrypte = tk.Button(root, text="Encrypte file using public key", command=make_asimmetric_keys)
+buttonAsymmetricEncrypte.pack(pady=20)
 
-buttonAssymetricDecrypte = tk.Button(root, text="Decrypte using private key", command=make_asimmetric_keys)
-buttonAssymetricDecrypte.pack(pady=20)
+buttonAsymmetricDecrypte = tk.Button(root, text="Decrypte file using private key", command=make_asimmetric_keys)
+buttonAsymmetricDecrypte.pack(pady=20)
 
 root.mainloop() # Keeps the window open and waits for inpur
-
-# THINGS TO ADD
-# ASYMMETRIC ENCRYPTION
-# encrypt
-
-# ASYMMETRIC DECRYPTION
-# decrypte
