@@ -95,6 +95,44 @@ def make_asimmetric_keys():
         with open(store_public_key, "wb") as f:
             f.write(public_key.save_pkcs1("PEM"))
 
+def asymmetric_encryption():
+    file_path = filedialog.askopenfilename()
+    public_key_path = filedialog.askopenfilename()
+
+    with open(public_key_path, "rb") as f:
+        public_key = rsa.PublicKey.load_pkcs1(f.read())
+
+    with open(file_path, 'rb') as file:
+    # Read the content of the file
+        content = file.read()
+
+    encrypted_message = rsa.encrypt(content, public_key)
+
+    with open(file_path + ".encrypted", "wb") as f :
+        f.write(encrypted_message)
+
+    os.remove(file_path)
+
+def asymmetric_decryption():
+    file_path = filedialog.askopenfilename()
+    private_key_path = filedialog.askopenfilename()
+
+    with open(private_key_path, "rb") as f:
+        private_key = rsa.PrivateKey.load_pkcs1(f.read())
+
+    encrypted_message = open(file_path, "rb").read()
+
+    clear_message = rsa.decrypt(encrypted_message, private_key)
+
+    base, ext = os.path.splitext(file_path)  # ext = '.encrypted'
+    decrypted_path = base  # 'example.txt'
+
+    with open(decrypted_path, "wb") as f :
+        f.write(clear_message)
+
+    os.remove(file_path)
+
+
 labelTitle = tk.Label(root, text="Symmetric Encryption")
 labelTitle.pack(pady=10)
 
@@ -113,10 +151,10 @@ labelTitle.pack(pady=10)
 buttonAssymetricKeys = tk.Button(root, text="Make public and private keys", command=make_asimmetric_keys)
 buttonAssymetricKeys.pack(pady=20)
 
-buttonAsymmetricEncrypte = tk.Button(root, text="Encrypte file using public key", command=make_asimmetric_keys)
+buttonAsymmetricEncrypte = tk.Button(root, text="Encrypte file using public key", command=asymmetric_encryption)
 buttonAsymmetricEncrypte.pack(pady=20)
 
-buttonAsymmetricDecrypte = tk.Button(root, text="Decrypte file using private key", command=make_asimmetric_keys)
+buttonAsymmetricDecrypte = tk.Button(root, text="Decrypte file using private key", command=asymmetric_decryption)
 buttonAsymmetricDecrypte.pack(pady=20)
 
 root.mainloop() # Keeps the window open and waits for inpur
