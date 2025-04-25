@@ -108,6 +108,42 @@ def make_asimmetric_keys():
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             ))
 
+def asymmetric_encryption():
+    file_path = filedialog.askopenfilename()
+    key_path = filedialog.askopenfilename()
+
+    with open(key_path, "rb") as f:
+        public_key = serialization.load_pem_public_key(f.read())
+
+    symmetric_key = Fernet.generate_key()
+    fernet = Fernet(symmetric_key)
+
+    with open(file_path, "rb") as f:
+        data = f.read()
+
+    encrypted_data = fernet.encrypt(data)
+
+    # Encrypt the Fernet key with the RSA public key
+    encrypted_key = public_key.encrypt(
+    symmetric_key,
+    padding.OAEP(
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None
+        )
+    )
+
+    # Save both to files
+    with open("encrypted_data.bin", "wb") as f:
+        f.write(encrypted_data)
+
+    with open("encrypted_key.bin", "wb") as f:
+        f.write(encrypted_key)
+
+def asymmetric_decryption():
+    file_path = filedialog.askopenfilename()
+    key_path = filedialog.askopenfilename()
+
 labelTitle = tk.Label(root, text="Symmetric Encryption")
 labelTitle.pack(pady=10)
 
@@ -126,4 +162,17 @@ labelTitle.pack(pady=10)
 buttonAssymetricKeys = tk.Button(root, text="Make public and private keys", command=make_asimmetric_keys)
 buttonAssymetricKeys.pack(pady=20)
 
+buttonAssymetricEncrypte = tk.Button(root, text="Encrypte using public key", command=asymmetric_encryption)
+buttonAssymetricEncrypte.pack(pady=20)
+
+buttonAssymetricDecrypte = tk.Button(root, text="Decrypte using private key", command=make_asimmetric_keys)
+buttonAssymetricDecrypte.pack(pady=20)
+
 root.mainloop() # Keeps the window open and waits for inpur
+
+# THINGS TO ADD
+# ASYMMETRIC ENCRYPTION
+# encrypt
+
+# ASYMMETRIC DECRYPTION
+# decrypte
