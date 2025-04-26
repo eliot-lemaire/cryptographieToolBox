@@ -10,7 +10,7 @@ import rsa
 
 root = tk.Tk() # Creates a window
 root.title("cryptographie tool kit") 
-root.geometry("300x150")    # set window size
+root.geometry("300x700")    # set window size
 
 def generate_key():
 
@@ -132,6 +132,46 @@ def asymmetric_decryption():
 
     os.remove(file_path)
 
+def sign_file():
+    file_path = filedialog.askopenfilename()
+    private_key_path = filedialog.askopenfilename()
+
+    with open(private_key_path, "rb") as f:
+        private_key = rsa.PrivateKey.load_pkcs1(f.read())
+
+    with open(file_path, 'rb') as file:
+    # Read the content of the file
+        data = file.read()
+
+    signature = rsa.sign(data, private_key, "SHA-256")
+
+    with open(file_path + ".sig", "wb") as f :
+        f.write(signature)
+
+
+
+def sign_file_verify():
+    original_file_path = filedialog.askopenfilename()
+    signature_file_path = filedialog.askopenfilename()
+    public_key_path = filedialog.askopenfilename()
+
+    with open(public_key_path, "rb") as f:
+        public_key = rsa.PublicKey.load_pkcs1(f.read())
+
+    with open(signature_file_path, "rb") as f:
+        signature = f.read()
+
+    with open(original_file_path, "rb") as f:
+        message = f.read()
+
+    try:
+        result = rsa.verify(message, signature, public_key)
+        print(result)
+        messagebox.showinfo(f"info", f"proof of origin verified")
+    except Exception as e:
+        # something happens if there is an error
+        messagebox.showinfo(f"info", f"Could not verify proof or origin")
+
 
 labelTitle = tk.Label(root, text="Symmetric Encryption")
 labelTitle.pack(pady=10)
@@ -156,5 +196,14 @@ buttonAsymmetricEncrypte.pack(pady=20)
 
 buttonAsymmetricDecrypte = tk.Button(root, text="Decrypte file using private key", command=asymmetric_decryption)
 buttonAsymmetricDecrypte.pack(pady=20)
+
+labelTitle = tk.Label(root, text="Proof of Origin")
+labelTitle.pack(pady=10)
+
+buttonSign = tk.Button(root, text="Sign File", command=sign_file)
+buttonSign.pack(pady=20)
+
+buttonSignVerify = tk.Button(root, text="Verify a Signed File", command=sign_file_verify)
+buttonSignVerify.pack(pady=20)
 
 root.mainloop() # Keeps the window open and waits for inpur
